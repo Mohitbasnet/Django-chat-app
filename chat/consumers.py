@@ -1,5 +1,5 @@
 import json
-from asgiref.sync import sync_to_sync
+from asgiref.sync import sync_to_async
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
@@ -13,6 +13,6 @@ class  ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
    
-    async def disconnet(self,close_code):
+    async def disconnect(self,close_code):
         # leave room
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
