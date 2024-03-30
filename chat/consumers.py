@@ -3,6 +3,9 @@ from asgiref.sync import sync_to_async
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from  templatetags.chatextras import initials
+
+from django.utils.timesince import timesince
 class  ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -36,7 +39,19 @@ class  ChatConsumer(AsyncWebsocketConsumer):
                     'name': name,
                     'agent': agent,
                     'initials': initials(name),
-                    'created_at': timesince(new_message.created_at),
+                    'created_at': '',# timesince(new_message.created_at),
                     
                 }
             )
+    
+
+    async def chat_message(self, event):
+        # Send message to WebSocket (front end)
+        await self.send(text_data=json.dumps({
+            'type': event['type'],
+            'message': event['message'],
+            'name': event['name'],
+            'agent': event['agent'],
+            'initials': event['initials'],
+            'created_at': event['created_at'],
+        }))
