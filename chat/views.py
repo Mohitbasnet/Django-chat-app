@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 
 import json
 
@@ -14,6 +14,8 @@ from account.models import User
 
 from account.forms import AddUserForm
 
+from django.contrib import messages
+from django.contrib.auth.models import Group
 @require_POST
 def create_room(request, uuid):
     name = request.POST.get('name','')
@@ -47,9 +49,28 @@ def room(request, uuid):
 
 @login_required
 def add_user(request):
-    form = AddUserForm()
+    if request.user.has_perm('user.add_user'):
+        if request.method == 'POST':
+            form = AddUserForm(request.POST)
+            if form.is_valid():
+                user = form.save(commit = False)
+                user.is_staff = True
+                user.set_password(request.POST.get('password'))
 
-    return render(request,'chat/add_user.html',{
+                if user.role == User.MANAGER:
+                    group = Group.objects.get(name = 'Managers')
+                    group.user_set.add(user)
+                messages.success(request,'Ther user was added!')
+
+                return redirect('/chat-admin/')
+
+        else:
+          form = AddUserForm()
+
+        return render(request,'chat/add_user.html',{
         'form': form
-    })
+          })
 
+    else:
+        messages.error(request, "You don't have access to add users")
+        return redirect('/chat-admin/')
