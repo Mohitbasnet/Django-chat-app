@@ -47,6 +47,13 @@ def room(request, uuid):
     })
 
 
+
+@login_required
+def user_detail(request,uuid):
+    return render(request,'chat/user_detail.html',{
+        'user': User.objects.get(pk=uuid)
+    })
+    
 @login_required
 def add_user(request):
     if request.user.has_perm('user.add_user'):
